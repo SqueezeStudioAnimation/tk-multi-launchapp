@@ -127,6 +127,12 @@ configuration:
                      to add additional pipeline paths, APIs or other things to the setup, or 
                      specify additional scripts etc to run."
 
+    hook_get_rez_packages:
+        type: hook
+        default_value: get_rez_packages
+        description: "This hook is called to resolve what package REZ should use as the current
+                     environment."
+
 # the Shotgun fields that this app needs in order to operate correctly
 requires_shotgun_fields:
 

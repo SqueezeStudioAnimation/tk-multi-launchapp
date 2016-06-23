@@ -372,10 +372,15 @@ class LaunchApplication(tank.platform.Application):
         self._clear_dll_directory()
 
         try:
+            # Resolve the packages that rez will use for the environment.
+            # We need this hook to be outside of the hook_app_launch hook since it can be used headlessly by the renderfarm.
+            packages = self.execute_hook("hook_get_rez_packages")
+            self.log_info("Using the following packages: {0}".format(packages))
+
             # Launch the application
             self.log_debug("Launching executable '%s' with args '%s'" % (app_path, app_args))
             result = self.execute_hook("hook_app_launch", app_path=app_path, app_args=app_args,
-                                       version=version_string)
+                                       version=version_string, packages=packages)
 
             cmd = result.get("command")
             return_code = result.get("return_code")
