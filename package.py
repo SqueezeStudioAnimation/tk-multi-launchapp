@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-name = 'tk-multi-launchapp'
+name = 'shotgun_tk_multi_launchapp'
 
 version = '0.7.6'
 
