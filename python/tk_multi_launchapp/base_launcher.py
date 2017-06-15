@@ -186,8 +186,8 @@ class BaseLauncher(object):
 
                 # Resolve the packages that rez will use for the environment.
                 # We need this hook to be outside of the hook_app_launch hook since it can be used headlessly by the renderfarm.
-                packages = self.execute_hook("hook_get_rez_packages")
-                self.log_info("Using the following packages: {0}".format(packages))
+                packages = self._tk_app.execute_hook("hook_get_rez_packages")
+                self._tk_app.log_info("Using the following packages: {0}".format(packages))
                 
                 result = self._tk_app.execute_hook(
                     "hook_app_launch", app_path=app_path,
