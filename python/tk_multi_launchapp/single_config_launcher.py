@@ -123,7 +123,7 @@ class SingleConfigLauncher(BaseLauncher):
         context = self._tk_app.sgtk.context_from_path(path)
         self._launch_app(
             self._app_menu_name, self._app_engine, self._app_path, self._app_args,
-            version, context, path
+            version=version, context=context, file_to_open=path
         )
 
     def launch_from_path_and_context(self, path, context, version=None):
@@ -145,5 +145,5 @@ class SingleConfigLauncher(BaseLauncher):
             # use given context to launch engine!
             self._launch_app(
                 self._app_menu_name, self._app_engine, self._app_path, self._app_args,
-                version, context, path
+                version=version, context=context, file_to_open=path
             )
