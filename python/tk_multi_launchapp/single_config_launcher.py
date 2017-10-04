@@ -41,6 +41,8 @@ class SingleConfigLauncher(BaseLauncher):
         """
         if not self._app_path:
             # no application path defined for this os. So don't register a menu item!
+            self._tk_app.log_debug('Command {} will not be registered since there '
+                                   'is no configured path for OS {}'.format(self._app_menu_name, self._platform_name))
             return
 
         # get icon value, replacing tokens if needed
