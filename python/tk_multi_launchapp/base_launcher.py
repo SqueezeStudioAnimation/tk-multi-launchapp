@@ -19,6 +19,7 @@ from .util import apply_version_to_setting, get_clean_version_string
 from .util import clear_dll_directory, restore_dll_directory
 from .prepare_apps import prepare_launch_for_engine
 
+
 class BaseLauncher(object):
     """
     Functionality to register engine commands that launch DCC
@@ -40,16 +41,17 @@ class BaseLauncher(object):
         }[sys.platform]
 
     def _register_launch_command(
-            self,
-            app_menu_name,
-            app_icon,
-            app_engine,
-            app_path,
-            app_args,
-            version=None,
-            group=None,
-            group_default=True,
-        ):
+        self,
+        app_menu_name,
+        app_icon,
+        app_engine,
+        app_path,
+        app_args,
+        version=None,
+        group=None,
+        group_default=True,
+        software_entity_id=None
+    ):
         """
         Register a launch command with the current engine.
 
@@ -70,6 +72,8 @@ class BaseLauncher(object):
                                    indicate whether to launch this command if the group is
                                    selected instead of an individual command. This value is
                                    also interpreted by the engine the command is registered with.
+        :param int software_entity_id: If set, this is the entity id of the software entity that
+                                       is associated with this launch command.
         """
         # do the {version} replacement if needed
         icon = apply_version_to_setting(app_icon, version)
@@ -106,8 +110,10 @@ class BaseLauncher(object):
                 "icon": icon,
                 "group": group,
                 "group_default": group_default,
-                "engine_name": app_engine,
+                "engine_name": app_engine
             }
+
+            properties["software_entity_id"] = software_entity_id
 
             def launch_version(*args, **kwargs):
                 self._launch_callback(
@@ -128,9 +134,9 @@ class BaseLauncher(object):
             )
 
     def _launch_app(
-            self, menu_name, app_engine, app_path, app_args, context,
-            version=None, file_to_open=None
-        ):
+        self, menu_name, app_engine, app_path, app_args, context,
+        version=None, file_to_open=None
+    ):
         """
         Launches an application. No environment variable change is
         leaked to the outside world.
@@ -172,8 +178,11 @@ class BaseLauncher(object):
             # run before launch hook
             self._tk_app.log_debug("Running before app launch hook...")
             self._tk_app.execute_hook(
-                "hook_before_app_launch", app_path=app_path,
-                app_args=app_args, version=version_string,
+                "hook_before_app_launch",
+                app_path=app_path,
+                app_args=app_args,
+                version=version_string,
+                engine_name=app_engine,
             )
 
             # Ticket 26741: Avoid having odd DLL loading issues on windows
@@ -196,7 +205,8 @@ class BaseLauncher(object):
                 
                 result = self._tk_app.execute_hook(
                     "hook_app_launch", app_path=app_path,
-                    app_args=app_args, version=version_string, packages=packages
+                    app_args=app_args, version=version_string, packages=packages,
+                    engine_name=app_engine,
                 )
                 launch_cmd = result.get("command")
                 return_code = result.get("return_code")
@@ -234,6 +244,16 @@ class BaseLauncher(object):
                     )
 
             else:
+                # Emit a launched software metric
+                try:
+                    # Dedicated try/except block: we wouldn't want a metric-related
+                    # exception to prevent execution of the remaining code.
+                    engine = sgtk.platform.current_engine()
+                    engine.log_metric("Launched Software")
+
+                except Exception:
+                    pass
+
                 # Write an event log entry
                 self._register_event_log(menu_name, app_engine, context, launch_cmd)
 
@@ -389,4 +409,3 @@ class BaseLauncher(object):
 
         # Convert the LooseVersions back to strings on return.
         return [str(version) for version in sort_versions]
-

@@ -15,6 +15,7 @@ This hook is executed to launch the applications.
 """
 
 import os
+import re
 import sys
 import tank
 import subprocess
@@ -66,8 +67,10 @@ class AppLaunch(tank.Hook):
 
         :param app_path: (str) The path of the application executable
         :param app_args: (str) Any arguments the application may require
-        :param version: (str) version of the application being run if set in the "versions" settings
-                              of the Launcher instance, otherwise None
+        :param version: (str) version of the application being run if set in the
+            "versions" settings of the Launcher instance, otherwise None
+        :param engine_name (str) The name of the engine associated with the
+            software about to be launched.
 
         :returns: (dict) The two valid keys are 'command' (str) and 'return_code' (int).
         """
@@ -85,17 +88,24 @@ class AppLaunch(tank.Hook):
             cmd = "%s %s &" % (app_path, app_args)
 
         elif system == "darwin":
-            # on the mac, the executable paths are normally pointing
-            # to the application bundle and not to the binary file
-            # embedded in the bundle, meaning that we should use the
-            # built-in mac open command to execute it. The -n flag tells the OS
-            # to launch a new instance even if one is already running. The -a
-            # flag specifies that the path is an application and supports both
-            # the app bundle form or the full executable form.
-            cmd = "open -n -a \"%s\"" % (app_path)
-            if app_args:
-                cmd += " --args \"%s\"" % app_args.replace("\"", "\\\"")
-
+            # If we're on OS X, then we have two possibilities: we can be asked
+            # to launch an application bundle using the "open" command, or we
+            # might have been given an executable that we need to treat like
+            # any other Unix-style command. The best way we have to know whether
+            # we're in one situation or the other is to check the app path we're
+            # being asked to launch; if it's a .app, we use the "open" command,
+            # and if it's not then we treat it like a typical, Unix executable.
+            if app_path.endswith(".app"):
+                # The -n flag tells the OS to launch a new instance even if one is 
+                # already running. The -a flag specifies that the path is an
+                # application and supports both the app bundle form or the full
+                # executable form.
+                cmd = "open -n -a \"%s\"" % (app_path)
+                if app_args:
+                    cmd += " --args %s" % app_args
+            else:
+                cmd = "%s %s &" % (app_path, app_args)
+        
         elif system == "win32":
             # on windows, we run the start command in order to avoid
             # any command shells popping up as part of the application launch.
