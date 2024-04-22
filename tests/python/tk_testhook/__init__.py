@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Shotgun Software Inc.
+# Copyright (c) 2020 Shotgun Software Inc.
 #
 # CONFIDENTIAL AND PROPRIETARY
 #
@@ -8,4 +8,14 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from . import tk_multi_launchapp
+import os
+
+
+def get_test_hook_environment():
+    """
+    Return the environment variables necessary to run the test engine.
+
+    :returns: Dictionary of environment variables necessary to run
+        the test engine.
+    """
+    return {"SHOTGUN_TEST_HOOK": os.path.abspath(os.path.dirname(__file__))}

@@ -76,18 +76,12 @@ class AppLaunch(tank.Hook):
         """
         system = sys.platform
         shell_type = 'bash'
-        if system == "linux2":
+        if tank.util.is_linux():
             # on linux, we just run the executable directly
             cmd = "%s %s &" % (app_path, app_args)
 
-        elif self.parent.get_setting("engine") in ["tk-flame", "tk-flare"]:
-            # flame and flare works in a different way from other DCCs
-            # on both linux and mac, they run unix-style command line
-            # and on the mac the more standardized "open" command cannot
-            # be utilized.
-            cmd = "%s %s &" % (app_path, app_args)
 
-        elif system == "darwin":
+        elif tank.util.is_macos():
             # If we're on OS X, then we have two possibilities: we can be asked
             # to launch an application bundle using the "open" command, or we
             # might have been given an executable that we need to treat like
@@ -96,7 +90,7 @@ class AppLaunch(tank.Hook):
             # being asked to launch; if it's a .app, we use the "open" command,
             # and if it's not then we treat it like a typical, Unix executable.
             if app_path.endswith(".app"):
-                # The -n flag tells the OS to launch a new instance even if one is 
+                # The -n flag tells the OS to launch a new instance even if one is
                 # already running. The -a flag specifies that the path is an
                 # application and supports both the app bundle form or the full
                 # executable form.
@@ -105,8 +99,8 @@ class AppLaunch(tank.Hook):
                     cmd += " --args %s" % app_args
             else:
                 cmd = "%s %s &" % (app_path, app_args)
-        
-        elif system == "win32":
+
+        else:
             # on windows, we run the start command in order to avoid
             # any command shells popping up as part of the application launch.
             cmd = "start /B \"App\" \"%s\" %s" % (app_path, app_args)
